@@ -1,0 +1,19 @@
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, Application, ConversationHandler
+from telegram import Update
+from config import get_token
+import handlers
+
+
+def main():
+    TOKEN = get_token()
+
+    dp = Application.builder().token(TOKEN).build()
+    
+    dp.add_handler(CommandHandler('start', handlers.start))
+
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.replying_bot))
+    
+    dp.run_polling(allowed_updates=Update.ALL_TYPES, timeout=30)
+
+if __name__ == '__main__':
+    main()
