@@ -14,7 +14,7 @@ def main():
 
     dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.forward_to_admin))
 
-    dp.run_polling(allowed_updates=Update.ALL_TYPES, timeout=30)
+    dp.run_polling(allowed_updates=Update.ALL_TYPES, timeout=10)
 
 if __name__ == '__main__':
     main()
