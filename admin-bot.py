@@ -10,9 +10,10 @@ def main():
     dp = Application.builder().token(TOKEN).build()
     
     dp.add_handler(CommandHandler('start', handlers.start))
+    dp.add_handler(MessageHandler(filters.TEXT & filters.REPLY, handlers.reply_to_user))
 
-    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.replying_bot))
-    
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.forward_to_admin))
+
     dp.run_polling(allowed_updates=Update.ALL_TYPES, timeout=30)
 
 if __name__ == '__main__':

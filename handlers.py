@@ -2,25 +2,48 @@ from telegram.ext import CallbackContext, ConversationHandler
 from telegram import Update
 import config
 
-
 async def start(update: Update, context: CallbackContext):
+    """Botni boshlash komandasi"""
+    await update.message.reply_text("Assalomu alaykum! Adminga xabar yuborish uchun matn yozing.")
+
+async def forward_to_admin(update: Update, context: CallbackContext):
+    """Foydalanuvchi yozgan xabarni adminga forward qilish"""
     user = update.message.from_user
-    msg = await update.message.reply_text(
-        text=f"""Assalomu aleykum {user.full_name}. Ushbu bot yordamida siz adminga xabar yo'llashingiz mumkin.""",
+    admin_id = config.get_chatid()  # Admin ID ni olish
+    
+    # Xabarni forward qilish
+    forwarded_message = await context.bot.forward_message(
+        chat_id=admin_id,
+        from_chat_id=update.message.chat_id,
+        message_id=update.message.message_id
     )
 
+    # Forward qilingan xabar ID sini foydalanuvchi ID bilan bog‘lash
+    context.bot_data[forwarded_message.message_id] = update.message.chat_id
 
-async def replying_bot(update: Update, context: CallbackContext):
-    user = update.message.from_user
-    admin_id = config.get_chatid()
-    chat_id = user.id
-    text = update.message.text
-    username = f"@{user.username}" if user.username else f"{user.full_name} (ID: {chat_id})"
+    await update.message.reply_text("✅ Xabaringiz adminga yuborildi.")
 
-    await context.bot.send_message(chat_id=admin_id, text=f"📩 Yangi xabar: {text}\n👤 Foydalanuvchi: {username}")
+async def reply_to_user(update: Update, context: CallbackContext):
+    """Admin xabarga reply berganda, foydalanuvchiga jo‘natish"""
+    if not update.message.reply_to_message:
+        await update.message.reply_text("❌ Javob berish uchun foydalanuvchining xabariga reply qiling!")
+        return
 
-    await update.message.reply_text(text="✅ Sizning xabaringiz muvaffaqiyatli yuborildi")
+    # Admin reply qilgan forward qilingan xabarni olish
+    replied_message = update.message.reply_to_message
+    user_id = context.bot_data.get(replied_message.message_id)
 
-async def cancel(update: Update, context: CallbackContext):
-    await update.message.reply_text('Amalyot bajarilmadi!')
-    return ConversationHandler.END
+    if not user_id:
+        await update.message.reply_text("❌ Ushbu xabarning foydalanuvchisi topilmadi!")
+        return
+
+    # Adminning javobi
+    admin_text = update.message.text
+
+    # Userga xabar yuborish
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=f"📩 Admin javobi:\n{admin_text}"
+    )
+
+    await update.message.reply_text("✅ Javob foydalanuvchiga yuborildi!")
